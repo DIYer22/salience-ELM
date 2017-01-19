@@ -32,7 +32,7 @@ LABEL_DATA_DIR=sal.LABEL_DATA_DIR
 
 a = random(3,5)
 
-def showpr(imgName=1,methods=['MEAN'],lab=False):
+def showpr(imgName=1,methods=["MY4","ME1","MEAN", "DRFI","QCUT","DISC2"],lab=False):
     if isinstance(imgName, int):
         imgName = IMG_NAME_LIST[imgName]
     img =  io.imread(IMG_DIR+imgName)/255.

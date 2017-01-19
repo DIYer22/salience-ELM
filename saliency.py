@@ -86,33 +86,12 @@ if __name__ == '__main__':
     showMethods = ["MY4","ME1","FT","GC","RC", "DRFI", "GMR","QCUT","DISC2"]
     showMethods += filter(lambda x:x not in showMethods,buildMethods)
     
-    data = plotMethods(IMG_DIR,COARSE_DIR,showMethods,
+    data = plotMethods(showMethods,
                        num=num,
                        save=getPoltName(coarseMethods,IMG_DIR)
                        )
-#    dic = deepcopy(data['img'])
-#    for name in dic:
-#        dic[name] = {'method':dic[name]}
-#        _dic = dic[name]
-#        _dic['aucs'] = [(method, v['auc']) for method,v in _dic['method'].items()]
-#        _dic['var'] = np.var([v['auc'] for method,v in _dic['method'].items()])
-#    
-#    varss = [(k,v['var'],v['aucs']) for k,v in dic.items()]
-#    varss.sort(key=lambda x:x[1])
-    
-    #[showpr(i,showMethods) for i in range(num)]
-    #aucs = data['MEAN']['imgs']
-    #aucs = aucs.items()
-    #aucs.sort(key=lambda x:x[1])
-    #bad = filter(lambda x:x[1]<0.5,aucs)
-    #saveData(bad)
-    
-    #bad = loadData('bad')        
-    #for name,auc in bad[::-1]:
-    #    print name    
-    #    showpr(name)
-    
-    
+
+
 
 
 

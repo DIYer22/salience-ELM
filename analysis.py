@@ -13,6 +13,12 @@ from tools import loadData,saveData
 from tools import performance,show,normalizing,random
 from algorithm import getCoarseDic
 
+import saliency as sal
+IMG_DIR=sal.IMG_DIR
+COARSE_DIR=sal.COARSE_DIR
+IMG_NAME_LIST=sal.IMG_NAME_LIST 
+LABEL_DATA_DIR=sal.LABEL_DATA_DIR
+
 @performance
 def precisionRecallCurve(imgGt,refinedImg,maxPoints=256):
     '''
@@ -98,9 +104,7 @@ def plotPrCurve(precisions, recalls, labels=None, avgPreScore=-1, save=None):
 
 
 @performance
-def getPrCurve(imgDir,
-                resoultDir,
-                methods= ['DRFI','GMR','MEAN'],
+def getPrCurve(methods= ['DRFI','GMR','MEAN'],
                 num = None,
                 ):
     '''
@@ -109,13 +113,13 @@ def getPrCurve(imgDir,
     img->[imgname]->[method]->auc,pr
     method->[method]->auc,pr
     '''
-    IMG_NAME_LIST = filter(lambda x:x[-3:]=='jpg',listdir(imgDir))
+    
     num = num if num else len(IMG_NAME_LIST)
     dataDic = {'img':{}}
     for name in IMG_NAME_LIST[:num]:
         print '%d/%d'%(IMG_NAME_LIST.index(name),num),name
-        imgGt = io.imread(imgDir+name[:-3]+'png').astype(np.bool).ravel()
-        coarseDic = getCoarseDic(name,methods,resoultDir)
+        imgGt = io.imread(IMG_DIR+name[:-3]+'png').astype(np.bool).ravel()
+        coarseDic = getCoarseDic(name,methods,COARSE_DIR)
         dataDic['img'][name] = {}
         
         for k,v in coarseDic.items():
@@ -139,17 +143,13 @@ def getPrCurve(imgDir,
     return precisions,recalls,methods,dataDic
 
 @performance
-def getPrCurveMergeToOne(imgDir,
-                resoultDir,
+def getPrCurveMergeToOne(
                 methods= ['MY','DRFI','GMR','MEAN'],
                 num = None,
                 ):
     '''
     过时的方法 全部读入内存
     '''
-    IMG_DIR = imgDir
-    IMG_NAME_LIST = filter(lambda x:x[-3:]=='jpg',listdir(IMG_DIR))
-    COARSE_DIR = resoultDir
     imgGt = reduce(lambda x,y:np.r_[x,y],
                    map(lambda name:io.imread(IMG_DIR+name[:-3]+'png').astype(np.bool).ravel(),
                        IMG_NAME_LIST[:num])
@@ -174,9 +174,7 @@ def getPrCurveMergeToOne(imgDir,
     
 
 
-def plotMethods(imgDir,
-                resoultDir,
-                methods= ['DRFI','GMR','MEAN'],
+def plotMethods(methods= ['DRFI','GMR','MEAN'],
                 save = None,
                 num = None,
                 ):
@@ -184,7 +182,7 @@ def plotMethods(imgDir,
     分析整个数据库的methods 方法
     返还data
     '''
-    p,r,methods,dataDic = getPrCurve(imgDir,resoultDir,methods,num)
+    p,r,methods,dataDic = getPrCurve(methods,num)
     data = dataDic['method']
     aucs = 0
     l = []
@@ -236,7 +234,7 @@ def getAucAndPr(imgGt,refindImg,method):
     return auc,p,r
 
 
-def saveImgData(imgName,methods,IMG_DIR,COARSE_DIR):
+def saveImgData(imgName,methods):
     '''
     save data to LABEL_DATA_DIR
     return default method`s AUC
@@ -276,13 +274,11 @@ if __name__ == '__main__':
     from copy import deepcopy
     from algorithm import showpr
     
-    IMG_DIR =  r'G:\Data\HKU-IS/Imgs/'
-    COARSE_DIR =r'G:\Data\HKU-IS/Saliency/'
+
 
     showMethods = ["MY3","MY4","ME1", "DRFI", "QCUT","DISC2"]
     num = 4
-    data = plotMethods(IMG_DIR,COARSE_DIR,showMethods,
-                       num=num,
+    data = plotMethods(num=num,
                        save='last'
                        )
     dic = deepcopy(data['img'])
