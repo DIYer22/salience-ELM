@@ -16,7 +16,7 @@ import cv2
 import cProfile as profile
 runt = profile.run
 
-from tools import mapp,show,getPoltName,performance,normalizing,random
+from tools import mapp,show,getPoltName,performance,normalizing,random,loga
 from tools import saveData,loadData
 
 from warnings import filterwarnings
@@ -69,7 +69,7 @@ if __name__ == '__main__':
     
     buildMethods=['MY4']
     num = len(IMG_NAME_LIST)
-    num = 0
+#    num = 0
     for name in IMG_NAME_LIST[:num]:
         buildImgs(name,buildMethods,coarseMethods)
     
