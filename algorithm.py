@@ -4,6 +4,10 @@ from __future__ import unicode_literals
 most of this module is algorithm ,
 and there still has some tools funcation which would use constant like IMG_DIR
 '''
+from boxx import *
+import boxx 
+b = boxx
+showw = b.show
 from os import listdir
 import os
 from copy import deepcopy
@@ -61,7 +65,17 @@ def readImg(imgName=0):
     if isinstance(imgName, int):
         imgName = IMG_NAME_LIST[imgName]
     img =  io.imread(IMG_DIR+imgName)/255.
-    imgGt = io.imread(IMG_DIR+imgName[:-3]+'png')/255.    
+    
+    if img.shape[0]>1000:
+        rate = img.shape[0]//512
+        img = img[::rate,::rate]
+    
+    pngPath = IMG_DIR+imgName[:-3]+'png'
+    if os.path.isfile(pngPath):
+        imgGt = io.imread(pngPath)/255.
+    else:
+        imgGt = np.zeros(img.shape[:2])
+        imgGt[100:200] = 1.
     return img,imgGt
 
 def readCoarseMap(imgName,method,coarseDir=None):
@@ -281,10 +295,16 @@ def getCoarseTrain(coarseImg, labelMap):
             vectorsTrainTag[label]=False
     return np.array(coarseTrain), np.array(vectorsTrainTag)
 
+def vectors2labelMap(vectors, labelMap):
+    bg = np.zeros(labelMap.shape + vectors.shape[-1:])
+    for k, v in enumerate(vectors):
+        bg[labelMap==k] = v
+    return bg
+    
 @performance
 def getRefindImgsOneElm(img,
-             coarseImgs,
-             labelMap
+             coarseImgs=None, # 为 None 则为 Compactness 原始方法
+             labelMap=None
              ):
     '''MY1
     use all coarse imgs to train one elm, than, predict one refinedImg
@@ -294,7 +314,11 @@ def getRefindImgsOneElm(img,
     # 获得4+4维  distance
     degreeVectors, Ws = getVectors(img, labelMap)
     vectors = getWeightSum(labelMap, degreeVectors, Ws)
-    
+    if not coarseImgs:
+        bg = norma(vectors2labelMap(vectors, labelMap).sum(-1))
+        show(bg)
+        pblue('befor Classifier!')
+        coarseImgs = [bg]
     vectorsTrains = []
     coarseTrains = []
     for coarseImg in coarseImgs:
@@ -302,11 +326,49 @@ def getRefindImgsOneElm(img,
         vectorsTrains += list(vectors[vectorsTrainTag])
         coarseTrains += list(coarseTrain)
     
+    g()
     elm = getElm(np.array(vectorsTrains), np.array(coarseTrains))
     refined = elm.predict(vectors)[:,0]
     refinedImg = valueToLabelMap(labelMap,normalizing(refined))
     return refinedImg
 
+
+def getBgNoElm(img,
+             coarseImgs=None,
+             labelMap=None
+             ):
+    '''BG1
+    '''
+    img = sk.color.rgb2lab(img)
+    #show([mark_boundaries(img,labelMap),imgGt])
+    # 获得4+4维  distance
+    degreeVectors, Ws = getVectors(img, labelMap)
+    vectors = getWeightSum(labelMap, degreeVectors, Ws)
+    if not coarseImgs:
+        bg = norma(vectors2labelMap(vectors, labelMap).sum(-1))
+        return bg
+        show(bg)
+        pblue('befor Classifier!')
+        coarseImgs = [bg]
+    vectorsTrains = []
+    coarseTrains = []
+    for coarseImg in coarseImgs:
+        coarseTrain, vectorsTrainTag = getCoarseTrain(coarseImg, labelMap)
+        vectorsTrains += list(vectors[vectorsTrainTag])
+        coarseTrains += list(coarseTrain)
+    
+    g()
+    elm = getElm(np.array(vectorsTrains), np.array(coarseTrains))
+    refined = elm.predict(vectors)[:,0]
+    refinedImg = valueToLabelMap(labelMap,normalizing(refined))
+    return refinedImg
+
+def getBgNoElmAndCrf(img,
+             coarseImgs=None,
+             labelMap=None
+             ):
+    refinedImg = getBgNoElm(img, coarseDic, labelMap)
+    
 @performance
 def getRefindImgsManyElm(img,
              coarseImgs,
@@ -482,12 +544,14 @@ buildMethodDic={
     'MY3':getRefindImgsOneElmAddLabAndLbp, # 对getRefindImgsOneElm 增加Lab LBP特征
     'MY4':my4diffEdge, # add different from Edge
     'MY5':my5diffEdgeAndNeighbor, # add different from Edge and neighbor
+    'BG1':getBgNoElm, # No Elm
+#    'BGCRF':getBgNoElmAndCrf, # add CRF
 }
 
 @performance
 def buildImgs(  imgName,
             buildMethods,
-            coarseMethods,
+            coarseMethods,  # 为空 则为 Compactness 原始方法
             segmentList=[200,250,750],
             compactness=20 ):
     '''
@@ -497,14 +561,16 @@ def buildImgs(  imgName,
         imgName = IMG_NAME_LIST[imgName]
     print 'img index:%d/%d'%(IMG_NAME_LIST.index(imgName),len(IMG_NAME_LIST))
     img,imgGt = readImg(imgName)
-    
+    showw-img
     #讨论：只能分两类 更多没用
     coarseDic = getCoarseDic(imgName,coarseMethods)
     #show(coarsesDic)   
-    sumCoarseImg = getSumCoarseImg(coarseDic)
-    coarseImgs=coarseDic.values()
-    coarsePath = COARSE_DIR+('%s_MEAN.png' % imgName[:imgName.rindex('.')])
-    io.imsave(coarsePath,sumCoarseImg)
+    coarseImgs = []
+    if len(coarseMethods):
+        sumCoarseImg = getSumCoarseImg(coarseDic)
+        coarseImgs=coarseDic.values()
+        coarsePath = COARSE_DIR+('%s_MEAN.png' % imgName[:imgName.rindex('.')])
+        io.imsave(coarsePath,sumCoarseImg)
     
     labelMapDic = {}
     for n_segments in segmentList:
@@ -515,7 +581,7 @@ def buildImgs(  imgName,
         funcation = buildMethodDic[buildMethod]
         _refinedImgs = []
         for n_segments in segmentList:
-            
+#            g()
             _refinedImg= funcation(img=img,
                                   coarseImgs=coarseImgs,
                                   labelMap=labelMapDic[n_segments])
@@ -528,10 +594,11 @@ def buildImgs(  imgName,
         path = COARSE_DIR+(methodNameFormat % imgName[:imgName.rindex('.')])
         io.imsave(path,refinedImg)
     
-    show([img,imgGt,sumCoarseImg],lab=False)
+    show([img,imgGt,],lab=False)
     print 'buildMethods: ',' || '.join(buildMethods)
     show(refinedImgs)
-
+    n=10; showw-[refinedImg>(i/float(n+1))  for i in range(n+1)]
+    g()
 def integratImgsBy3way(refinedImgs):
     def f(refinedImg):    
         h,w = refinedImg.shape[:2]
@@ -546,6 +613,7 @@ def integratImgsBy3way(refinedImgs):
         return ratio,distribut,var
     
     l = np.array(map(f,refinedImgs))
+#    g()
     l = l/l.max(0)
     l = l.sum(1)
     mergeImg = sum(map(lambda x:x[0]*x[1],zip(refinedImgs,l)))
@@ -628,7 +696,16 @@ def grabCut(img, refinedImg=None):
 
 
 if __name__ == '__main__':
-    2
+    coarseMethods=['GT']
+    coarseMethods=[] # 为空 则为 Compactness 原始方法
+    
+    buildMethods=['MY1']
+    buildMethods=['BGCRF']
+    buildMethods=['BG1']
+#    num = len(IMG_NAME_LIST)
+#    num = 0
+    for name in IMG_NAME_LIST[::]:
+        buildImgs(name,buildMethods,coarseMethods)
     
     
     

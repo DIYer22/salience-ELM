@@ -32,10 +32,13 @@ floatToUint8 = lambda img:(normalizing(img)*255.999999).astype(np.uint8)
 
 
 PERFORMANCE = 0
+
+from boxx import g, wraps
 def performance(f):
     '''
     性能测试装饰器
     '''
+    @wraps(f)
     def fn(*args, **kw):
         t1 = time.time()
         r = f(*args, **kw)
@@ -257,6 +260,5 @@ def getNeighbor(label,labelMap,neighborMatrix,levels=1):
     
 
 
-    
-    
+from boxx import  loga    
     

@@ -26,17 +26,25 @@ COARSE_DIR ='../DataSet1/Saliency/'
 IMG_DIR =  r'G:\Data\HKU-IS/Imgs/'
 COARSE_DIR =r'G:\Data\HKU-IS/Saliency/'
 
+
+IMG_DIR = r'C:\D\dataset\saliency\ECSSD-small\images/'
+COARSE_DIR =r'C:\D\dataset\saliency\ECSSD-small\ground_truth_mas/'
+
+IMG_DIR = r'test/'
+COARSE_DIR ='test/'
+
+
 IMG_NAME_LIST = filter(lambda x:x[-3:]=='jpg',listdir(IMG_DIR))
 
 setModuleConstant(alg)
 
-imgName = IMG_NAME_LIST[3]
+imgName = IMG_NAME_LIST[0]
 img,imgGt = readImg(imgName)
 rgbImg = img
 
 rgbImg = np.zeros((100,100,3))
 rgbImg[25:75,25:75,1:]=1.
-show(rgbImg)
+#show(rgbImg)
 
 def integratImgsBy3wayTest():
     from algorithm import getSlic,getCoarseDic,integratImgsBy3way,buildMethodDic
@@ -44,15 +52,15 @@ def integratImgsBy3wayTest():
     img = rgbImg
     m, n = labelMap.shape 
     
-    coarseMethods = ['MEAN']
+    coarseMethods = ['GT']
     coarseDic = getCoarseDic(imgName,coarseMethods)
 #    show(coarseDic)   
     coarseImgs=coarseDic.values()       
     
+    g()
     refinedImgs=map(lambda f:f(img,coarseImgs,labelMap),buildMethodDic.values())
     img = integratImgsBy3way(refinedImgs)
     show(img)
-    
 
 def my4test():
 #if 1:
@@ -160,7 +168,7 @@ def getWeightSumTest():
         show([labLbp[color],imgg2,imgg],1)
     loga(degreeVectors)
     loga(vectors)
-    
+    g()
 
 
 
@@ -170,12 +178,13 @@ def getRefindImgsTest():
     IMG_DIR = r'E:\3-experiment\SalBenchmark-master\Data\DataSet1\Imgs/'
     COARSE_DIR =r'E:\3-experiment\SalBenchmark-master\Data\DataSet1\Saliency/'
       
-    IMG_DIR =  '../DataSet1/Imgs/'
-    COARSE_DIR ='../DataSet1/Saliency/'
+    IMG_DIR =  'test/'
+    COARSE_DIR ='test/'
   
     IMG_NAME_LIST = filter(lambda x:x[-3:]=='jpg',listdir(IMG_DIR))
     coarseMethods = ['QCUT','DRFI']
-    imgInd = 1
+    coarseMethods = ['GT']
+    imgInd = 0
     n_segments,compactness = 200,10
     
     imgName = IMG_NAME_LIST[imgInd]
@@ -210,7 +219,7 @@ def getRefindImgsTest():
     show([rgb,vectorsImg])
     show(vectorsImg-refinedImg)
     loga(vectorsImg-refinedImg)
-    
+    g()
 def grabCutTest():
     coarseMethods = ['MY4','QCUT','DRFI']
     imgInd = 1
@@ -228,9 +237,19 @@ def grabCutTest():
     
     
 if __name__ == "__main__":
-    grabCutTest()
+    from algorithm import *
     
+#    getWeightSumTest()
+#    getRefindImgsTest()
+
+    coarseMethods=[] # 为空 则为 Compactness 原始方法
     
+    buildMethods=['BG1']
+    buildMethods=['MY1']
+#    num = len(IMG_NAME_LIST)
+#    num = 0
+    for name in IMG_NAME_LIST[::]:
+        buildImgs(name,buildMethods,coarseMethods)    
     
     
     

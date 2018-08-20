@@ -1,3 +1,24 @@
+
+# 使用超像素+紧密度算子+传统分类器的图像显著区域检测
+
+环境: `Python 2.7`
+
+依赖: `pip install boxx hpelm`;`conda install opencv`
+
+测试: `python test.py`
+
+Update in 2018.08
+
+ * 增加了 [Detecting Salient Objects via Color and Texture Compactness Hypotheses](https://ieeexplore.ieee.org/abstract/document/7523421/) 的原始 Saliency 方法.
+
+注意: 
+
+ 1. `from boxx import *` 可能会和早期版本冲突
+ 2. `algorithm.buildMethodDic` 是个函数字典, 存储各个方法, 比较重要
+ 3. `coarseMethods=[]` 则为 Compactness 原文的原始方法
+
+-------
+
 # 基于ELM的图像显著区域检测
 ----
 > 作者：`小磊`

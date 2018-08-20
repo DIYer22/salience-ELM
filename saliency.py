@@ -44,16 +44,21 @@ G = {} # G is a global var to save value for DEBUG in funcation
 IMG_DIR = r'E:\3-experiment\SalBenchmark-master\Data\HKU-IS\Imgs/'
 COARSE_DIR =r'E:\3-experiment\SalBenchmark-master\Data\HKU-IS\Saliency/'
 
-#IMG_DIR = r'E:\3-experiment\SalBenchmark-master\Data\DUT-OMRON-image\Imgs/'
-#COARSE_DIR =r'E:\3-experiment\SalBenchmark-master\Data\DUT-OMRON-image\Saliency/'
+IMG_DIR = r'C:\D\dataset\saliency\ECSSD-small\images/'
+COARSE_DIR =r'C:\D\dataset\saliency\ECSSD-small\ground_truth_mas/'
 
+
+IMG_DIR = r'test/'
+COARSE_DIR ='test/'
+
+#COARSE_DIR = IMG_DIR = r'C:\D\dataset\bread_sku/'
 
 LABEL_DATA_DIR = os.path.dirname(IMG_DIR[:-1])+'/LabelData/'
 if not os.path.isdir(LABEL_DATA_DIR):
     os.mkdir(LABEL_DATA_DIR)
     
 IMG_NAME_LIST = filter(lambda x:x[-3:]=='jpg',listdir(IMG_DIR))
-allMethods = list(set(map(lambda x: x[x.rindex('_')+1:-4],listdir(COARSE_DIR))))
+#allMethods = list(set(map(lambda x: x[x.rindex('_')+1:-4],listdir(COARSE_DIR))))
 
 if __name__ == '__main__':
     from algorithm import readImg,getCoarseDic,showpr
@@ -66,8 +71,9 @@ if __name__ == '__main__':
     IMG_NAME_LIST=IMG_NAME_LIST[::]
     # build MY* 创造
     coarseMethods=['DISC2','QCUT']
+    coarseMethods=[]
     
-    buildMethods=['MY4']
+    buildMethods=['MY1','MY4']
     num = len(IMG_NAME_LIST)
 #    num = 0
     for name in IMG_NAME_LIST[:num]:
