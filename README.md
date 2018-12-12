@@ -8,7 +8,7 @@
 测试: `python test.py`
 
 
-Update in 2018.12
+### Update in 2018.12
 
 调用命令:
 ```bash
@@ -20,7 +20,7 @@ source deactivate
 
 
 
-Update in 2018.08
+### Update in 2018.08
 
  * 增加了 [Detecting Salient Objects via Color and Texture Compactness Hypotheses](https://ieeexplore.ieee.org/abstract/document/7523421/) 的原始 Saliency 方法.
 
