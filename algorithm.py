@@ -5,7 +5,10 @@ most of this module is algorithm ,
 and there still has some tools funcation which would use constant like IMG_DIR
 '''
 from boxx import *
+
+ignoreWarning()
 import boxx 
+cf.debug = False
 b = boxx
 showw = b.show
 from os import listdir
@@ -28,6 +31,11 @@ from tools import getSlic
 from tools import getEdge,getNeighborMatrix,getNeighbor,valueToLabelMap
 from tools import loadData,saveData
 
+if not cf.get('debug'):
+    show = mf(lambda *l, **kv: None)
+    showw = show
+
+
 import saliency as sal
 IMG_DIR=sal.IMG_DIR
 COARSE_DIR=sal.COARSE_DIR
@@ -39,8 +47,9 @@ a = random(3,5)
 def showpr(imgName=1,methods=["MY4","ME1","MEAN", "DRFI","QCUT","DISC2"],lab=False):
     if isinstance(imgName, int):
         imgName = IMG_NAME_LIST[imgName]
-    img =  io.imread(IMG_DIR+imgName)/255.
-    imgGt = io.imread(IMG_DIR+imgName[:-3]+'png')!=0
+    path = pathjoin(IMG_DIR, imgName)
+    img =  io.imread(path)/255.
+    imgGt = io.imread(path[:-3]+'png')!=0
     coarseDic = getCoarseDic(imgName,methods)
     imgs = []
     methods = []
@@ -64,8 +73,14 @@ def showpr(imgName=1,methods=["MY4","ME1","MEAN", "DRFI","QCUT","DISC2"],lab=Fal
 def readImg(imgName=0):
     if isinstance(imgName, int):
         imgName = IMG_NAME_LIST[imgName]
-    img =  io.imread(IMG_DIR+imgName)/255.
-    
+        
+    path = pathjoin(IMG_DIR, imgName)
+    try :
+        img =  io.imread(path)/255.
+    except Exception as e:
+        pblue(path)
+        os.system('cp %s ~/junk/bad/'%(path, ))
+        raise e
     if img.shape[0]>1000:
         rate = img.shape[0]//512
         img = img[::rate,::rate]
@@ -699,13 +714,51 @@ if __name__ == '__main__':
     coarseMethods=['GT']
     coarseMethods=[] # 为空 则为 Compactness 原始方法
     
-    buildMethods=['MY1']
     buildMethods=['BGCRF']
+    buildMethods=['MY1']
     buildMethods=['BG1']
 #    num = len(IMG_NAME_LIST)
 #    num = 0
-    for name in IMG_NAME_LIST[::]:
-        buildImgs(name,buildMethods,coarseMethods)
+#with timeit():
+    l, d = getArgvDic()
+    if len(d):
+        tree/d
+    lists = IMG_NAME_LIST
+#    lists = IMG_NAME_LIST[:13]
     
+    machineInd = os.environ.get('RLAUNCH_REPLICA')
+    if machineInd:
+        machineInd = int(machineInd)
+        total = int(os.environ.get('RLAUNCH_REPLICA_TOTAL'))
+#        lists = loadData('no_png_list.npy')
+        lists = lists[machineInd::total]
+#    else:
+#        if sysi.host in ['ws', 'dl']:
+#            lists = [n for n in IMG_NAME_LIST if not isfile(pathjoin(IMG_DIR, n.replace('.jpg', '_BG1.png')))]
+#            saveData(lists, ('no_png_list.npy'))
+#            pblue(('\n\nlists len:', len(lists)))
+#            1/0
+#    for name in lists:
+    def f(name):
+        for buildMethod in buildMethods:
+            methodNameFormat = '%s_'+buildMethod+'.png'
+            path = COARSE_DIR+(methodNameFormat % name[:name.rindex('.')])
+            if not os.path.isfile(path):
+                p-name
+                break
+        else:
+            return 
+        try:
+            buildImgs(name,buildMethods,coarseMethods)
+        except Exception as e:
+            pblue(e)
+            pass
+    with timeit():
+#        mapmp(f, lists, pool=15, printfreq=.05)
+        list(map(f, lists, ))
+        
+    print('\n\nend!!!!!!!!!!!!!!!!!!!!!!!!!\n\n')
+# rlaunch -P3 --cpu=2 --memory=8192 --replica-restart never
     
-    
+#rlaunch -P 4 -- python -c "from boxx import *;print('\n\nppppp:',os.environ['RLAUNCH_
+#REPLICA'],'total', os.environ.get('RLAUNCH_REPLICA_TOTAL') ,);sleep(3)"    

@@ -53,6 +53,15 @@ COARSE_DIR ='test/'
 
 #COARSE_DIR = IMG_DIR = r'C:\D\dataset\bread_sku/'
 
+COARSE_DIR = IMG_DIR = 'C:/D/dataset/checkout/padding_bbox/'
+
+from boxx import addPathToSys
+
+addPathToSys(__file__, '../auto_synthesis')
+from config import cropedDir
+COARSE_DIR = IMG_DIR = cropedDir
+
+
 LABEL_DATA_DIR = os.path.dirname(IMG_DIR[:-1])+'/LabelData/'
 if not os.path.isdir(LABEL_DATA_DIR):
     os.mkdir(LABEL_DATA_DIR)
